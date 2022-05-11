@@ -255,7 +255,7 @@ class BeaconChain(object):
     def addBeaconToChain(self, beacon):
         _messages = beacon.messages.decode()
         if _messages != "null":
-            self.pendingMessages.remove(msg)
+            self.pendingMessages.remove(_messages)
         currentChainLength = len(self.blocks)
         self.getLastBeacon().son = beacon.proof
         _oldtimestamp = self.getLastBeacon().timestamp
@@ -827,12 +827,13 @@ def nLastTxs(n):
 def getTxsByBound(upperBound, lowerBound):
     upperBound = min(upperBound, len(node.txsOrder)-1)
     lowerBound = max(lowerBound, 0)
-    for txid in txsOrder[lowerBound,upperBound]:
+    txs = []
+    for txid in node.txsOrder[lowerBound,upperBound]:
         txs.append(node.transactions.get(txid))
     return flask.jsonify(result=txs, success=True)
 
 @app.route("/get/txIndex/<index>")
-def getTxIndex(txid):
+def getTxIndex(tx):
     _index = node.state.txIndex.get(tx)
     if _index != None:
         return flask.jsonify(result=_index, success=True)
