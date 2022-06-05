@@ -912,17 +912,6 @@ def sendRawTransactions():
     node.checkTxs(txs)
     return flask.jsonify(result=hashes, success=True)
 
-### BROKEN!!! FIX!!!
-#@app.route("/send/buildtransaction/")
-#def buildTransactionAndSend():
-#    privkey = str(flask.request.args.get('privkey', None))
-#    _from = str(flask.request.args.get('from', None))
-#    _to = str(flask.request.args.get('to', None))
-#    tokens = str(flask.request.args.get('value', None))
-#    result = buildTransaction(self, privkey, _from, _to, tokens)[0]
-#    return flask.jsonify(result=result[0], success=result[1])
-
-
 # BEACON RELATED DATA (loaded from node/state/beaconChain)
 @app.route("/chain/block/<block>")
 def getBlock(block):
