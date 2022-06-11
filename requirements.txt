@@ -1,0 +1,12 @@
+web3
+typing
+flask_cors
+eth_utils
+dataclasses
+eth_account
+import requests 
+time
+json
+threading
+flask
+rlp
