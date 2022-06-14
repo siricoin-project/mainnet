@@ -4,7 +4,7 @@ flask_cors
 eth_utils
 dataclasses
 eth_account
-import requests 
+requests 
 time
 json
 threading
