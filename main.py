@@ -16,7 +16,7 @@ try:
     config = json.load(configFile)
     configFile.close()
 except:
-    config = {"dataBaseFile": "database.json", "peers": ["https://node-2.siricoin.tech:5006/"], "InitTxID": "none"}
+    config = {"dataBaseFile": "database.json", "peers": ["https://node-1.siricoin.tech:5006/", "https://node-2.siricoin.tech:5006/"], "InitTxID": "none"}
 
 try:
     ssl_context = tuple(config["ssl"])
