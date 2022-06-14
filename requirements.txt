@@ -5,8 +5,6 @@ eth_utils
 dataclasses
 eth_account
 requests 
-time
-json
 threading
 flask
 rlp
