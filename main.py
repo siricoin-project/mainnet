@@ -218,6 +218,7 @@ class BeaconChain(object):
         self.pendingMessages = []
         self.blockReward = 50
         self.blockTime = 1200 # in seconds, about 20 minutes
+        self.cummulatedDifficulty = 1
 
     def checkBeaconMessages(self, beacon):
         _messages = beacon.messages.decode().split(",")
@@ -262,6 +263,7 @@ class BeaconChain(object):
         beacon.number = currentChainLength
         self.blocks.append(beacon)
         self.blocksByHash[beacon.proof] = beacon
+        self.cummulatedDifficulty += self.difficulty
         self.difficulty = self.calcDifficulty(self.blockTime, _oldtimestamp, int(beacon.timestamp), self.difficulty)
         self.miningTarget = hex(int(min(int((2**256-1)/self.difficulty),0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff)))
         return True
@@ -798,7 +800,7 @@ def getping():
 
 @app.route("/stats")
 def getStats():
-    _stats_ = {"coin": {"transactions": len(node.txsOrder), "supply": node.state.totalSupply, "holders": len(node.state.holders)}, "chain" : {"length": len(node.state.beaconChain.blocks), "difficulty" : node.state.beaconChain.difficulty, "target": node.state.beaconChain.miningTarget, "lastBlockHash": node.state.beaconChain.getLastBeacon().proof}}
+    _stats_ = {"coin": {"transactions": len(node.txsOrder), "supply": node.state.totalSupply, "holders": len(node.state.holders)}, "chain" : {"length": len(node.state.beaconChain.blocks), "difficulty" : node.state.beaconChain.difficulty, "cumulatedDifficulty": node.state.beaconChain.cummulatedDifficulty, "target": node.state.beaconChain.miningTarget, "lastBlockHash": node.state.beaconChain.getLastBeacon().proof}}
     return flask.jsonify(result=_stats_, success=True)
 
 # HTTP GENERAL GETTERS - pulled from `Node` class
