@@ -104,10 +104,12 @@ class Transaction(object):
     def __init__(self, tx):
         txData = json.loads(tx["data"])
         self.txtype = (txData.get("type") or 0)
+        self.fee = 0.0
         if (self.txtype == 0):
             self.sender = w3.toChecksumAddress(txData.get("from"))
             self.recipient = w3.toChecksumAddress(txData.get("to"))
             self.value = max(float(txData.get("tokens")), 0)
+            self.fee = 1.0
         if (self.txtype == 1):
             self.sender = w3.toChecksumAddress(txData.get("from"))
             self.blockData = txData.get("blockData")
@@ -123,6 +125,7 @@ class Transaction(object):
             self.nonce = ethDecoded.nonce
             self.ethData = ethDecoded.data
             self.ethTxid = ethDecoded.hash_tx
+            self.fee = 2.1
 
 
         self.epoch = txData.get("epoch")
@@ -319,6 +322,7 @@ class State(object):
         self.totalSupply = 110 # initial supply used for testing
         self.type2ToType0Hash = {}
         self.type0ToType2Hash = {}
+        self.feeActivationBlock = 6500
 
     def getCurrentEpoch(self):
         return self.beaconChain.getLastBeacon().proof
@@ -354,8 +358,12 @@ class State(object):
         else:
             return (tx.parent == lastTx)
 
+    def feeEnabled(self):
+        return (len(self.beaconChain.blocks) >= self.feeActivationBlock)
+
     def checkBalance(self, tx):
-        return tx.value > (self.balances.get(tx.sender) or 0)
+        _fee = tx.fee if self.feeEnabled() else 0
+        return (tx.value + _fee) > (self.balances.get(tx.sender) or 0)
 
     def updateHolders(self):
         _holders = []
@@ -436,8 +444,9 @@ class State(object):
             return willSucceed
         self.applyParentStuff(tx)
 
-
-        self.balances[tx.sender] -= tx.value
+        _fee = (tx.fee if self.feeEnabled() else 0)
+        self.balances[tx.sender] -= (tx.value + _fee)
+        self.totalSupply -= _fee
         self.balances[tx.recipient] += tx.value
 
         if (showMessage):
@@ -970,7 +979,7 @@ def handleWeb3Request():
     if method == "eth_mining":
         result = False
     if method == "eth_gasPrice":
-        result = "0x1"
+        result = "0x5af3107a4000" # web3 tx fee is 2.1 siri
     if method == "eth_blockNumber":
         result = hex(len(node.state.beaconChain.blocks) - 1)
     if method == "eth_getTransactionCount":
