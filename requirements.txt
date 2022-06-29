@@ -1,10 +1,7 @@
 web3
-typing
-flask_cors
-eth_utils
-dataclasses
-eth_account
-requests 
-threading
+Flask-Cors
+eth-utils
+eth-account
+requests
 flask
 rlp
