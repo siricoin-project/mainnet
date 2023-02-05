@@ -34,7 +34,7 @@ class SignatureManager(object):
         _signature = w3.eth.account.sign_message(message, private_key=private_key).signature.hex()
         signer = w3.eth.account.recover_message(message, signature=_signature)
         sender = w3.toChecksumAddress(json.loads(transaction["data"])["from"])
-        if (signer == sender):
+        if signer == sender:
             transaction["sig"] = _signature
             self.signed += 1
         return transaction
@@ -104,11 +104,11 @@ class Transaction(object):
     def __init__(self, tx):
         txData = json.loads(tx["data"])
         self.txtype = (txData.get("type") or 0)
-        if (self.txtype == 0):
+        if self.txtype == 0:
             self.sender = w3.toChecksumAddress(txData.get("from"))
             self.recipient = w3.toChecksumAddress(txData.get("to"))
             self.value = max(float(txData.get("tokens")), 0)
-        if (self.txtype == 1):
+        if self.txtype == 1:
             self.sender = w3.toChecksumAddress(txData.get("from"))
             self.blockData = txData.get("blockData")
             # print(self.blockData)
@@ -223,7 +223,7 @@ class BeaconChain(object):
     def checkBeaconMessages(self, beacon):
         _messages = beacon.messages.decode().split(",")
         for msg in _messages:
-            if (not msg in self.pendingMessages) and (msg != "null"):
+            if not msg in self.pendingMessages and msg != "null":
                 return False
         return True
 
@@ -238,7 +238,7 @@ class BeaconChain(object):
             return (False, "INVALID_MESSAGE")
         if not beacon.difficultyMatched():
             return (False, "UNMATCHED_DIFFICULTY")
-        if ((int(beacon.timestamp) < _lastBeacon.timestamp) or (beacon.timestamp > time.time())):
+        if int(beacon.timestamp) < _lastBeacon.timestamp or beacon.timestamp > time.time():
             return (False, "INVALID_TIMESTAMP")
         return (True, "GOOD")
 
@@ -414,7 +414,7 @@ class State(object):
         self.txIndex[tx.txid] = self.lastTxIndex
         self.lastTxIndex += 1
         self.transactions[tx.sender].append(tx.txid)
-        if (tx.sender != tx.recipient):
+        if tx.sender != tx.recipient:
             self.transactions[tx.recipient].append(tx.txid)
         if tx.txtype == 1:
             miner = tx.blockData.get("miningData").get("miner")
@@ -440,7 +440,7 @@ class State(object):
         self.balances[tx.sender] -= tx.value
         self.balances[tx.recipient] += tx.value
 
-        if (showMessage):
+        if showMessage:
             print(f"Transfer executed !\nAmount transferred : {tx.value}\nFrom: {tx.sender}\nTo: {tx.recipient}")
         return (True, "Transfer succeeded")
 
@@ -476,7 +476,7 @@ class State(object):
             feedback = self.executeTransfer(_tx, showMessage)
 
 
-        if (_tx.bio):
+        if _tx.bio:
             self.accountBios[_tx.sender] = _tx.bio.replace("%20", " ")
         # if _tx.message:
             # self.leaveMessage(_from, _to, msg, showMessage)
@@ -486,7 +486,7 @@ class State(object):
     def getLastUserTx(self, _user):
         user = w3.toChecksumAddress(_user)
         self.ensureExistence(user)
-        if (len(self.transactions[user]))>0:
+        if len(self.transactions[user]) > 0:
             return self.transactions[user][len(self.transactions[user])-1]
         else:
             return self.initTxID
@@ -494,7 +494,7 @@ class State(object):
     def getLastSentTx(self, _user):
         user = w3.toChecksumAddress(_user)
         self.ensureExistence(user)
-        if (len(self.sent[user]))>0:
+        if len(self.sent[user]) > 0:
             return self.sent[user][len(self.sent[user])-1]
         else:
             return self.initTxID
@@ -502,7 +502,7 @@ class State(object):
     def getLastReceivedTx(self, _user):
         user = w3.toChecksumAddress(_user)
         self.ensureExistence(user)
-        if (len(self.received[user]))>0:
+        if len(self.received[user]) > 0:
             return self.received[user][len(self.received[user])-1]
         else:
             return None
@@ -539,7 +539,7 @@ class Node(object):
 
 
     def addTxToMempool(self, tx):
-        if (self.canBePlayed(tx)[1]):
+        if self.canBePlayed(tx)[1]:
             self.mempool.append(tx)
 
 
@@ -567,7 +567,7 @@ class Node(object):
         for tx in txs:
             playable = self.canBePlayed(tx)
             # print(f"Result of canBePlayed for tx {tx['hash']}: {playable}")
-            if (not self.transactions.get(tx["hash"]) and playable[0]):
+            if not self.transactions.get(tx["hash"]) and playable[0]:
                 self.transactions[tx["hash"]] = tx
                 self.txsOrder.append(tx["hash"])
                 self.state.playTransaction(tx, True)
@@ -623,7 +623,7 @@ class Node(object):
         self.goodPeers = []
         for peer in self.peers:
             try:
-                if (requests.get(f"{peer}/ping").json()["success"]):
+                if requests.get(f"{peer}/ping").json()["success"]:
                     self.goodPeers.append(peer)
             except:
                 pass
@@ -631,7 +631,7 @@ class Node(object):
         self.goodPeers = []
         for peer in self.peers:
             try:
-                if (requests.get(f"{peer}/ping").json()["success"]):
+                if requests.get(f"{peer}/ping").json()["success"]:
                     self.goodPeers.append(peer)
             except:
                 pass
@@ -662,7 +662,7 @@ class Node(object):
                 for child in _childs:
                     if not (child in children):
                         pulledTxData = json.loads(self.pullSetOfTxs([child])[0]["data"])
-                        if (pulledTxData["parent"] == txid) or (pulledTxData["type"] == 2):
+                        if pulledTxData["parent"] == txid or pulledTxData["type"] == 2:
                             children.append(child)
                 break
             except:
@@ -845,7 +845,7 @@ def getTxIndex(tx):
 @app.route("/get/transaction/<txhash>", methods=["GET"]) # get specific tx by hash
 def getTransactionByHash(txhash):
     tx = node.transactions.get(txhash)
-    if (tx != None):
+    if tx != None:
         return flask.jsonify(result=tx, success=True)
     else:
         return (flask.jsonify(message="TX_NOT_FOUND", success=False), 404)
@@ -857,7 +857,7 @@ def getMultipleTransactionsByHashes(txhashes):
     _txhashes = txhashes.split(",")
     for txhash in _txhashes:
         tx = node.transactions.get(txhash)
-        if (tx):
+        if tx:
             txs.append(tx)
             oneSucceeded = True
     return flask.jsonify(result=txs, success=oneSucceeded)
@@ -907,7 +907,7 @@ def sendRawTransactions():
     for rawtx in rawtxs:
         tx = json.loads(bytes.fromhex(rawtx).decode())
         print(tx)
-        if (type(tx["data"]) == dict):
+        if type(tx["data"]) == dict:
             tx["data"] = json.dumps(tx["data"]).replace(" ", "")
         txs.append(tx)
         hashes.append(tx["hash"])
